@@ -41,12 +41,13 @@ func HandleConnection(conn net.Conn) {
 						{
 							"name":        "wymux",
 							"description": "WyMux Middleware Pipeline",
-							"attribution": map[string]string{"name": "WyMux", "url": ""},
+							"attribution": map[string]string{"name": "WyMux", "url": "https://github.com/bfeller/WyMux"},
 							"installed":   true,
 							"models": []map[string]interface{}{
 								{
 									"name":        "wymux_proxy",
 									"description": "WyMux Proxy",
+									"attribution": map[string]string{"name": "WyMux", "url": "https://github.com/bfeller/WyMux"},
 									"installed":   true,
 									"languages":   []string{"en"},
 								},
