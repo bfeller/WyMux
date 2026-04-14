@@ -41,5 +41,5 @@ Click **Save** and then click **Start** in the Info tab!
 1. By default, WyMux listens locally on TCP port `10400`.
 2. To use it, simply configure your Home Assistant **Wyoming Integration**.
 3. Go to **Settings** > **Devices & Services** > **Add Integration** > **Wyoming**.
-4. Enter `localhost` as the Host and `10400` as the Port.
+4. Enter the physical IP address of your Home Assistant box (e.g., `192.168.1.X`) as the Host and `10400` as the Port. DO NOT use `localhost` because the integration runs inside a separate container and `localhost` resolves to the core container instead of the add-on.
 5. Your voice assistant pipeline in Home Assistant will now utilize the `WyMux` integration as its engine, routing all pipeline audio seamlessly through our multiplexer proxy!

@@ -8,6 +8,9 @@ arch:
   - armhf
   - armv7
 init: false
+hassio_api: true
+hassio_role: default
+homeassistant_api: true
 map:
   - share:rw
 options:

@@ -22,5 +22,5 @@ Please map your desired service endpoints within the **Configuration** tab befor
 
 1. Configure your endpoint options in the Configuration tab and verify the Add-on is **Started**.
 2. Go to **Settings** > **Devices & Services** > **Add Integration** > **Wyoming**.
-3. Point the integration to: Host `localhost` | Port `10400`.
+3. Point the integration to: Host `[IP_ADDRESS_OF_HOME_ASSISTANT]` | Port `10400`.
 4. Map your active Voice Assistants/Pipelines to this new integration!
