@@ -14,6 +14,7 @@ RUN go build -o wymux main.go
 FROM $BUILD_FROM
 
 WORKDIR /app
+RUN apk add --no-cache jq
 # Copy built binary from builder stage
 COPY --from=builder /app/wymux /app/wymux
 COPY run.sh /app/run.sh

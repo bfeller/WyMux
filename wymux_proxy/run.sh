@@ -1,26 +1,28 @@
-#!/usr/bin/env bashio
+#!/usr/bin/env bash
 
-bashio::log.info "Starting WyMux Proxy Service..."
+echo "[INFO] Starting WyMux Proxy Service..."
 
-bashio::log.info "--- DIAGNOSTICS: OPTIONS.JSON ---"
+echo "[INFO] --- DIAGNOSTICS: OPTIONS.JSON ---"
 if [ -f /data/options.json ]; then
-    bashio::log.info "File exists. Contents:"
+    echo "[INFO] File exists. Contents:"
     cat /data/options.json
     echo ""
 else
-    bashio::log.error "/data/options.json DOES NOT EXIST! User has not hit 'Save' or Supervisor failed to write it."
+    echo "[ERROR] /data/options.json DOES NOT EXIST!"
 fi
-bashio::log.info "---------------------------------"
+echo "[INFO] ---------------------------------"
 
-# Check config options
-export STT_WHISPER_URL=$(bashio::config 'stt_whisper_url')
-export BIOMETRIC_SERVER_URL=$(bashio::config 'biometric_server_url')
-export AUDIO_STORAGE_URL=$(bashio::config 'audio_storage_url')
-export CUSTOM_LLM_URL=$(bashio::config 'custom_llm_url')
-export CUSTOM_LLM_API_KEY=$(bashio::config 'custom_llm_api_key')
-export CUSTOM_LLM_MODEL=$(bashio::config 'custom_llm_model')
+# Read config directly from options.json using jq
+export STT_WHISPER_URL=$(jq -r '.stt_whisper_url // empty' /data/options.json)
+export BIOMETRIC_SERVER_URL=$(jq -r '.biometric_server_url // empty' /data/options.json)
+export AUDIO_STORAGE_URL=$(jq -r '.audio_storage_url // empty' /data/options.json)
+export CUSTOM_LLM_URL=$(jq -r '.custom_llm_url // empty' /data/options.json)
+export CUSTOM_LLM_API_KEY=$(jq -r '.custom_llm_api_key // empty' /data/options.json)
+export CUSTOM_LLM_MODEL=$(jq -r '.custom_llm_model // empty' /data/options.json)
 
-bashio::log.info "STT Endpoint: $STT_WHISPER_URL"
+echo "[INFO] STT Endpoint: $STT_WHISPER_URL"
+echo "[INFO] LLM Endpoint: $CUSTOM_LLM_URL"
+echo "[INFO] LLM Model: $CUSTOM_LLM_MODEL"
 
 # The SUPERVISOR_TOKEN is automatically set in the environment by Home Assistant
 
