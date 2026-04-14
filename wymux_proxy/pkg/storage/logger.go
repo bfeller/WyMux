@@ -47,7 +47,13 @@ func AddWAVHeader(pcmData []byte, sampleRate int, numChannels int, bitsPerSample
 }
 
 // SaveData saves the WAV and JSON payload locally and uploads to the Audio Storage Server.
+// Only runs when AUDIO_STORAGE_URL is configured.
 func SaveData(pcmData []byte, transcript, speakerID string, confidence float64, routing string) {
+	uploadURL := os.Getenv("AUDIO_STORAGE_URL")
+	if uploadURL == "" {
+		return
+	}
+
 	timestamp := time.Now().Format("20060102_150405")
 	baseName := fmt.Sprintf("wymux_%s_%s", speakerID, timestamp)
 
@@ -62,7 +68,7 @@ func SaveData(pcmData []byte, transcript, speakerID string, confidence float64, 
 	}
 	metaBytes, _ := json.MarshalIndent(metaData, "", "  ")
 
-	// Write to mapped generic volume
+	// Write to mapped local volume as backup
 	shareDir := "/share/voice_training_data"
 	os.MkdirAll(shareDir, 0755)
 
@@ -73,12 +79,6 @@ func SaveData(pcmData []byte, transcript, speakerID string, confidence float64, 
 	os.WriteFile(jsonPath, metaBytes, 0644)
 
 	log.Printf("[STORAGE] Saved session to %s", shareDir)
-
-	// Forward to Remote Audio File Storage Server
-	uploadURL := os.Getenv("AUDIO_STORAGE_URL")
-	if uploadURL == "" {
-		return
-	}
 
 	apiKey := os.Getenv("AUDIO_STORAGE_API_KEY")
 
