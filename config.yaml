@@ -1,0 +1,24 @@
+name: "WyMux Proxy"
+version: "1.0.0"
+slug: "wymux_proxy"
+description: "Wyoming proxy service for advanced intent routing, STT multiplexing, and speaker identification."
+arch:
+  - amd64
+  - aarch64
+  - armhf
+  - armv7
+init: false
+map:
+  - share:rw
+options:
+  stt_whisper_url: "tcp://core-whisper:10300"
+  biometric_server_url: "http://localhost:8000/identify"
+  audio_storage_url: "http://localhost:8080/upload"
+  custom_llm_url: "http://localhost:11434/api/generate"
+schema:
+  stt_whisper_url: str
+  biometric_server_url: str
+  audio_storage_url: str
+  custom_llm_url: str
+ports:
+  10400/tcp: 10400
