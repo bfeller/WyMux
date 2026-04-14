@@ -1,5 +1,5 @@
 name: "WyMux Proxy"
-version: "1.0.7"
+version: "1.0.8"
 slug: "wymux_proxy"
 description: "Wyoming proxy service for advanced intent routing, STT multiplexing, and speaker identification."
 arch:
