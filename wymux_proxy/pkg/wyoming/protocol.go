@@ -6,11 +6,23 @@ import (
 	"encoding/json"
 	"io"
 	"log"
+	"os"
 )
 
+var debugEnabled = false
+
+func init() {
+	debugEnabled = os.Getenv("DEBUG_LOGGING") == "true"
+}
+
+// DebugLog prints a log message only when debug logging is enabled.
+func DebugLog(format string, v ...interface{}) {
+	if debugEnabled {
+		log.Printf(format, v...)
+	}
+}
+
 // Msg represents a Wyoming protocol event.
-// Wire format: {"type":"...","data":{...},"data_length":N,"payload_length":M,"version":"..."}\n
-// Followed optionally by N bytes of JSON data, then M bytes of binary payload.
 type Msg struct {
 	Type       string
 	Data       map[string]interface{}
@@ -18,7 +30,6 @@ type Msg struct {
 }
 
 // ReadMessage reads a Wyoming protocol event from the reader.
-// It handles both inline "data" and external "data_length" formats.
 func ReadMessage(r *bufio.Reader) (*Msg, []byte, error) {
 	line, err := r.ReadBytes('\n')
 	if err != nil {
@@ -28,7 +39,7 @@ func ReadMessage(r *bufio.Reader) (*Msg, []byte, error) {
 	line = bytes.TrimSpace(line)
 
 	if len(line) > 0 {
-		log.Printf("[DEBUG-WYM] Received raw line: %s", string(line))
+		DebugLog("[DEBUG-WYM] Received raw line: %s", string(line))
 	}
 
 	if len(line) == 0 {
@@ -87,7 +98,6 @@ func ReadMessage(r *bufio.Reader) (*Msg, []byte, error) {
 }
 
 // WriteMessage sends a Wyoming protocol event.
-// Format: header JSON line with data_length, then data JSON bytes, then binary payload.
 func WriteMessage(w io.Writer, msg Msg, payload []byte) error {
 	// Build the header
 	header := map[string]interface{}{
@@ -116,9 +126,9 @@ func WriteMessage(w io.Writer, msg Msg, payload []byte) error {
 		return err
 	}
 
-	log.Printf("[DEBUG-WYM] Sending header: %s", string(headerJSON))
+	DebugLog("[DEBUG-WYM] Sending header: %s", string(headerJSON))
 	if dataBytes != nil {
-		log.Printf("[DEBUG-WYM] Sending data: %s", string(dataBytes))
+		DebugLog("[DEBUG-WYM] Sending data: %s", string(dataBytes))
 	}
 
 	headerJSON = append(headerJSON, '\n')

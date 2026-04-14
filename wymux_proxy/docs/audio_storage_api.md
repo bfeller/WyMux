@@ -11,8 +11,12 @@ Your objective is to implement the ingestion endpoint (e.g., in Node.js Express,
 
 ### `POST /upload`
 
+**Authentication:**
+WyMux will send an optional Bearer token in the `Authorization` header if the user has configured `audio_storage_api_key` in their Home Assistant add-on settings. Your server should validate this token if authentication is required.
+
 **Request details:**
 *   **Content-Type:** `multipart/form-data`
+*   **Authorization:** `Bearer <audio_storage_api_key>` *(optional, only present when configured)*
 *   **Form fields:**
     *   `audio`: A file byte stream representing the `.wav` interaction. 
     *   `metadata`: A file byte stream parsing out as a `.json` document with telemetry data.

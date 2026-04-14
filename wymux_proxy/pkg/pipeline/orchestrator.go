@@ -11,7 +11,6 @@ import (
 	"os"
 	"strings"
 
-	"wymux/pkg/routing"
 	"wymux/pkg/storage"
 	"wymux/pkg/wyoming"
 )
@@ -29,7 +28,7 @@ func HandleConnection(conn net.Conn) {
 	for {
 		msg, payload, err := wyoming.ReadMessage(reader)
 		if err != nil {
-			log.Printf("Connection closed or error: %v", err)
+			wyoming.DebugLog("Connection closed or error: %v", err)
 			break
 		}
 
@@ -65,12 +64,12 @@ func HandleConnection(conn net.Conn) {
 		case "transcribe":
 			// HA tells us about language/model preferences before streaming audio
 			transcribeData = msg.Data
-			log.Printf("[PIPELINE] Transcribe request received: %v", transcribeData)
+			log.Printf("[PIPELINE] Transcribe request received")
 
 		case "audio-start":
 			audioBuffer.Reset()
 			audioChunks = nil
-			log.Printf("[PIPELINE] Audio stream started")
+			wyoming.DebugLog("[PIPELINE] Audio stream started")
 
 		case "audio-chunk":
 			audioBuffer.Write(payload)
@@ -91,12 +90,15 @@ func HandleConnection(conn net.Conn) {
 			// ==== Fork B: Biometrics (optional) ====
 			speakerID, confidence := "unknown", 0.0
 			biometricURL := os.Getenv("BIOMETRIC_SERVER_URL")
-			if biometricURL != "" && biometricURL != "http://localhost:8000/identify" {
-				speakerID, confidence = runBiometrics(pcmData, biometricURL)
+			if biometricURL != "" {
+				biometricKey := os.Getenv("BIOMETRIC_API_KEY")
+				speakerID, confidence = runBiometrics(pcmData, biometricURL, biometricKey)
 				log.Printf("[PIPELINE] Speaker: %s (%.2f)", speakerID, confidence)
 			}
 
 			// ==== Send transcript back to HA ====
+			// NOTE: HA handles intent routing internally after receiving this transcript.
+			// Our job as the ASR service is done once we return the text.
 			wyoming.WriteMessage(conn, wyoming.Msg{
 				Type: "transcript",
 				Data: map[string]interface{}{
@@ -104,34 +106,17 @@ func HandleConnection(conn net.Conn) {
 				},
 			}, nil)
 
-			// ==== Intent routing (optional, async) ====
+			// ==== Storage (optional, async) ====
 			go func() {
-				routingDest := "none"
-				if transcript != "" {
-					routed, err := routing.HandleIntent(transcript)
-					if err != nil || !routed {
-						llmURL := os.Getenv("CUSTOM_LLM_URL")
-						if llmURL != "" {
-							routing.FallbackLLM(transcript, speakerID)
-							routingDest = "custom_llm"
-						}
-					} else {
-						routingDest = "home_assistant"
-					}
-				}
-
-				// ==== Storage (optional, async) ====
-				storageURL := os.Getenv("AUDIO_STORAGE_URL")
 				if len(pcmData) > 0 {
-					storage.SaveData(pcmData, transcript, speakerID, confidence, routingDest)
+					storage.SaveData(pcmData, transcript, speakerID, confidence, "asr_proxy")
 				}
-				_ = storageURL
 			}()
 
 			return
 
 		default:
-			log.Printf("[DEBUG-WYM] Unhandled message type: %s", msg.Type)
+			wyoming.DebugLog("[DEBUG-WYM] Unhandled message type: %s", msg.Type)
 		}
 	}
 }
@@ -156,7 +141,7 @@ func forwardToWhisper(transcribeData map[string]interface{}, chunks [][]byte) st
 		}
 	}
 
-	log.Printf("[WHISPER] Connecting to Whisper at %s", addr)
+	wyoming.DebugLog("[WHISPER] Connecting to Whisper at %s", addr)
 	whisperConn, err := net.Dial("tcp", addr)
 	if err != nil {
 		log.Printf("[WHISPER] Failed to connect: %v", err)
@@ -203,7 +188,7 @@ func forwardToWhisper(transcribeData map[string]interface{}, chunks [][]byte) st
 		Data: map[string]interface{}{},
 	}, nil)
 
-	log.Printf("[WHISPER] All audio forwarded, waiting for transcript...")
+	wyoming.DebugLog("[WHISPER] All audio forwarded, waiting for transcript...")
 
 	// Read response from Whisper - expect a transcript event
 	for {
@@ -216,7 +201,7 @@ func forwardToWhisper(transcribeData map[string]interface{}, chunks [][]byte) st
 			continue
 		}
 
-		log.Printf("[WHISPER] Received event: %s", msg.Type)
+		wyoming.DebugLog("[WHISPER] Received event: %s", msg.Type)
 
 		if msg.Type == "transcript" {
 			if text, ok := msg.Data["text"].(string); ok {
@@ -227,7 +212,7 @@ func forwardToWhisper(transcribeData map[string]interface{}, chunks [][]byte) st
 	}
 }
 
-func runBiometrics(pcmData []byte, biometricURL string) (string, float64) {
+func runBiometrics(pcmData []byte, biometricURL string, apiKey string) (string, float64) {
 	wavData := storage.AddWAVHeader(pcmData, 16000, 1, 16)
 
 	req, err := http.NewRequest("POST", biometricURL, bytes.NewReader(wavData))
@@ -236,6 +221,9 @@ func runBiometrics(pcmData []byte, biometricURL string) (string, float64) {
 		return "unknown", 0.0
 	}
 	req.Header.Set("Content-Type", "audio/wav")
+	if apiKey != "" {
+		req.Header.Set("Authorization", "Bearer "+apiKey)
+	}
 
 	client := &http.Client{}
 	resp, err := client.Do(req)

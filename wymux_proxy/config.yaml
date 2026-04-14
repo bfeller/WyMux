@@ -1,5 +1,5 @@
 name: "WyMux Proxy"
-version: "1.0.9"
+version: "1.1.0"
 slug: "wymux_proxy"
 description: "Wyoming proxy service for advanced intent routing, STT multiplexing, and speaker identification."
 arch:
@@ -16,16 +16,22 @@ map:
 options:
   stt_whisper_url: "tcp://core-whisper:10300"
   biometric_server_url: ""
+  biometric_api_key: ""
   audio_storage_url: ""
+  audio_storage_api_key: ""
   custom_llm_url: ""
   custom_llm_api_key: ""
   custom_llm_model: "gpt-3.5-turbo"
+  debug_logging: false
 schema:
   stt_whisper_url: str
   biometric_server_url: str?
+  biometric_api_key: str?
   audio_storage_url: str?
+  audio_storage_api_key: str?
   custom_llm_url: str?
   custom_llm_api_key: str?
   custom_llm_model: str?
+  debug_logging: bool
 ports:
   10400/tcp: 10400

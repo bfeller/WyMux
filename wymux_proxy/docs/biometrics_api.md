@@ -13,8 +13,12 @@ Your target service must implement an HTTP Server (e.g., using Python with FastA
 
 ### `POST /identify`
 
+**Authentication:**
+WyMux will send an optional Bearer token in the `Authorization` header if the user has configured `biometric_api_key` in their Home Assistant add-on settings. Your server should validate this token if authentication is required.
+
 **Request details:**
-*   **Content-Type:** `audio/wav` 
+*   **Content-Type:** `audio/wav`
+*   **Authorization:** `Bearer <biometric_api_key>` *(optional, only present when configured)*
 *   **Body:** A raw binary WAV file (`RIFF` header, typically 16kHz, 16-bit, Mono).
 
 **Execution Requirements:**

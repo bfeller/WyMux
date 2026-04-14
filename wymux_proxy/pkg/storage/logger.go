@@ -72,13 +72,15 @@ func SaveData(pcmData []byte, transcript, speakerID string, confidence float64, 
 	jsonPath := filepath.Join(shareDir, baseName+".json")
 	os.WriteFile(jsonPath, metaBytes, 0644)
 
-	log.Printf("Saved session internally to %s", shareDir)
+	log.Printf("[STORAGE] Saved session to %s", shareDir)
 
 	// Forward to Remote Audio File Storage Server
 	uploadURL := os.Getenv("AUDIO_STORAGE_URL")
 	if uploadURL == "" {
 		return
 	}
+
+	apiKey := os.Getenv("AUDIO_STORAGE_API_KEY")
 
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
@@ -93,19 +95,22 @@ func SaveData(pcmData []byte, transcript, speakerID string, confidence float64, 
 
 	req, _ := http.NewRequest("POST", uploadURL, body)
 	req.Header.Set("Content-Type", writer.FormDataContentType())
+	if apiKey != "" {
+		req.Header.Set("Authorization", "Bearer "+apiKey)
+	}
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Printf("Failed to upload session to remote storage: %v", err)
+		log.Printf("[STORAGE] Failed to upload to remote storage: %v", err)
 		return
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode == 200 {
-		log.Printf("Successfully uploaded session to remote storage")
+		log.Printf("[STORAGE] Successfully uploaded to remote storage")
 	} else {
 		bodyBytes, _ := io.ReadAll(resp.Body)
-		log.Printf("Upload failed with status %d: %s", resp.StatusCode, string(bodyBytes))
+		log.Printf("[STORAGE] Upload failed with status %d: %s", resp.StatusCode, string(bodyBytes))
 	}
 }
