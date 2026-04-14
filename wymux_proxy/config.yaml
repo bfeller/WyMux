@@ -15,17 +15,17 @@ map:
   - share:rw
 options:
   stt_whisper_url: "tcp://core-whisper:10300"
-  biometric_server_url: "http://localhost:8000/identify"
-  audio_storage_url: "http://localhost:8080/upload"
-  custom_llm_url: "https://api.openai.com/v1/chat/completions"
+  biometric_server_url: ""
+  audio_storage_url: ""
+  custom_llm_url: ""
   custom_llm_api_key: ""
   custom_llm_model: "gpt-3.5-turbo"
 schema:
   stt_whisper_url: str
-  biometric_server_url: str
-  audio_storage_url: str
-  custom_llm_url: str
+  biometric_server_url: str?
+  audio_storage_url: str?
+  custom_llm_url: str?
   custom_llm_api_key: str?
-  custom_llm_model: str
+  custom_llm_model: str?
 ports:
   10400/tcp: 10400

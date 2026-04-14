@@ -47,7 +47,8 @@ func HandleIntent(transcript string) (bool, error) {
 func FallbackLLM(transcript string, speakerID string) {
 	llmUrl := os.Getenv("CUSTOM_LLM_URL")
 	if llmUrl == "" {
-		llmUrl = "https://api.openai.com/v1/chat/completions"
+		log.Println("[LLM] No CUSTOM_LLM_URL configured, skipping LLM fallback")
+		return
 	}
 
 	model := os.Getenv("CUSTOM_LLM_MODEL")
