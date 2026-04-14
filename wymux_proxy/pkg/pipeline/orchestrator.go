@@ -33,6 +33,25 @@ func HandleConnection(conn net.Conn) {
 		}
 
 		switch msg.Type {
+		case "describe":
+			wyoming.WriteMessage(conn, wyoming.Msg{
+				Type: "info",
+				Data: map[string]interface{}{
+					"asr": []map[string]interface{}{
+						{
+							"models": []map[string]interface{}{
+								{
+									"name":        "wymux",
+									"description": "WyMux Streaming Proxy",
+									"installed":   true,
+									"languages":   []string{"en"},
+								},
+							},
+						},
+					},
+				},
+			}, nil)
+
 		case "audio-start":
 			audioBuffer.Reset()
 

@@ -7,6 +7,8 @@ export STT_WHISPER_URL=$(bashio::config 'stt_whisper_url')
 export BIOMETRIC_SERVER_URL=$(bashio::config 'biometric_server_url')
 export AUDIO_STORAGE_URL=$(bashio::config 'audio_storage_url')
 export CUSTOM_LLM_URL=$(bashio::config 'custom_llm_url')
+export CUSTOM_LLM_API_KEY=$(bashio::config 'custom_llm_api_key')
+export CUSTOM_LLM_MODEL=$(bashio::config 'custom_llm_model')
 
 bashio::log.info "STT Endpoint: $STT_WHISPER_URL"
 

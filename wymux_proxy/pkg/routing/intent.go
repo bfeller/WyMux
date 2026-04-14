@@ -43,24 +43,49 @@ func HandleIntent(transcript string) (bool, error) {
 	return resp.StatusCode == 200, nil
 }
 
-// FallbackLLM routes the text transcript and speaker identity to a custom backend LLM.
+// FallbackLLM routes the text transcript and speaker identity to a custom backend LLM compatible with OpenAI endpoints.
 func FallbackLLM(transcript string, speakerID string) {
 	llmUrl := os.Getenv("CUSTOM_LLM_URL")
 	if llmUrl == "" {
-		llmUrl = "http://localhost:11434/api/generate"
+		llmUrl = "https://api.openai.com/v1/chat/completions"
 	}
 
+	model := os.Getenv("CUSTOM_LLM_MODEL")
+	if model == "" {
+		model = "gpt-3.5-turbo"
+	}
+
+	key := os.Getenv("CUSTOM_LLM_API_KEY")
+
 	payload := map[string]interface{}{
-		"prompt": transcript,
-		"system": "You are a smart home agent talking to " + speakerID,
-		"stream": false,
+		"model": model,
+		"messages": []map[string]string{
+			{
+				"role":    "system",
+				"content": "You are a smart home agent talking to " + speakerID,
+			},
+			{
+				"role":    "user",
+				"content": transcript,
+			},
+		},
+		"temperature": 0.7,
 	}
 	body, _ := json.Marshal(payload)
 
-	_, err := http.Post(llmUrl, "application/json", bytes.NewBuffer(body))
+	req, _ := http.NewRequest("POST", llmUrl, bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+	if key != "" {
+		req.Header.Set("Authorization", "Bearer "+key)
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
 	if err != nil {
 		log.Printf("Failed to reach Fallback LLM: %v", err)
 		return
 	}
-	log.Printf("Successfully routed unhandled intent to Fallback LLM for speaker: %s", speakerID)
+	defer resp.Body.Close()
+
+	log.Printf("Successfully routed unhandled intent to Fallback LLM (%s) for speaker: %s", model, speakerID)
 }
