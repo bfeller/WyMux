@@ -24,6 +24,11 @@ func ReadMessage(r *bufio.Reader) (*Msg, []byte, error) {
 
 	var msg Msg
 	line = bytes.TrimSpace(line)
+
+	if len(line) > 0 {
+		log.Printf("[DEBUG-WYM] Received raw line: %s", string(line))
+	}
+
 	if len(line) == 0 {
 		// Treat empty line as OK, return empty msg and no payload
 		return &Msg{}, nil, nil

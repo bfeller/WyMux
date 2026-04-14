@@ -55,6 +55,9 @@ func HandleConnection(conn net.Conn) {
 					},
 				},
 			}, nil)
+		
+		default:
+			log.Printf("[DEBUG-WYM] Unhandled message type: %s", msg.Type)
 
 		case "audio-start":
 			audioBuffer.Reset()
