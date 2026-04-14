@@ -39,10 +39,14 @@ func HandleConnection(conn net.Conn) {
 				Data: map[string]interface{}{
 					"asr": []map[string]interface{}{
 						{
+							"name":        "wymux",
+							"description": "WyMux Middleware Pipeline",
+							"attribution": map[string]string{"name": "WyMux", "url": ""},
+							"installed":   true,
 							"models": []map[string]interface{}{
 								{
-									"name":        "wymux",
-									"description": "WyMux Streaming Proxy",
+									"name":        "wymux_proxy",
+									"description": "WyMux Proxy",
 									"installed":   true,
 									"languages":   []string{"en"},
 								},
